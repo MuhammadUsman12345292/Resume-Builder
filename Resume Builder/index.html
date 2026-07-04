@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Draft — Resume Builder</title>
+
+<!-- Favicon -->
+<link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,500;0,9..144,600;1,9..144,500&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<div class="app">
+
+  <!-- ===== Top bar ===== -->
+  <header class="topbar">
+    <div class="brand">
+      <span class="brand-mark">¶</span>
+      <span class="brand-name">Draft</span>
+      <span class="brand-sub">/ resume builder</span>
+    </div>
+
+    <nav class="template-tabs" role="tablist" aria-label="Resume template">
+      <button class="tab active" data-template="modern" role="tab" aria-selected="true">01 · Modern</button>
+      <button class="tab" data-template="classic" role="tab" aria-selected="false">02 · Classic</button>
+      <button class="tab" data-template="minimal" role="tab" aria-selected="false">03 · Minimal</button>
+    </nav>
+
+    <div class="toolbar">
+      <span class="save-indicator" id="saveIndicator">saved</span>
+      <button class="btn btn-ghost" id="importBtn" title="Import a saved .json resume">Import</button>
+      <input type="file" id="importFile" accept="application/json" hidden>
+      <button class="btn btn-ghost" id="exportJsonBtn" title="Download your data as .json">Export JSON</button>
+      <button class="btn btn-primary" id="printBtn" title="Export as PDF">Export PDF</button>
+    </div>
+  </header>
+
+  <div class="workspace">
+
+    <!-- ===== Left: editor panel ===== -->
+    <aside class="editor" id="editor">
+
+      <section class="field-group" data-section="personal">
+        <h2 class="group-title"><span class="idx">01</span> Basics</h2>
+        <div class="grid-2">
+          <label class="field"><span>Full name</span>
+            <input type="text" id="p-name" placeholder="Jordan Ellis" autocomplete="off">
+          </label>
+          <label class="field"><span>Title / role</span>
+            <input type="text" id="p-title" placeholder="Senior Product Designer" autocomplete="off">
+          </label>
+        </div>
+        <div class="grid-2">
+          <label class="field"><span>Email</span>
+            <input type="email" id="p-email" placeholder="jordan@email.com" autocomplete="off">
+          </label>
+          <label class="field"><span>Phone</span>
+            <input type="text" id="p-phone" placeholder="+1 (555) 010-0101" autocomplete="off">
+          </label>
+        </div>
+        <div class="grid-2">
+          <label class="field"><span>Location</span>
+            <input type="text" id="p-location" placeholder="Austin, TX" autocomplete="off">
+          </label>
+          <label class="field"><span>Website / LinkedIn</span>
+            <input type="text" id="p-website" placeholder="linkedin.com/in/jordanellis" autocomplete="off">
+          </label>
+        </div>
+      </section>
+
+      <section class="field-group" data-section="summary">
+        <h2 class="group-title"><span class="idx">02</span> Summary</h2>
+        <label class="field">
+          <span>A short professional summary</span>
+          <textarea id="p-summary" rows="4" placeholder="Product designer with 7 years building B2B tools. Led design systems work that cut engineering handoff time by 40%."></textarea>
+        </label>
+      </section>
+
+      <section class="field-group" data-section="experience">
+        <h2 class="group-title"><span class="idx">03</span> Experience
+          <button class="btn btn-add" data-add="experience">+ Add role</button>
+        </h2>
+        <div class="repeatable-list" id="experienceList"></div>
+      </section>
+
+      <section class="field-group" data-section="education">
+        <h2 class="group-title"><span class="idx">04</span> Education
+          <button class="btn btn-add" data-add="education">+ Add school</button>
+        </h2>
+        <div class="repeatable-list" id="educationList"></div>
+      </section>
+
+      <section class="field-group" data-section="skills">
+        <h2 class="group-title"><span class="idx">05</span> Skills</h2>
+        <label class="field">
+          <span>Type a skill and press Enter</span>
+          <input type="text" id="skillInput" placeholder="e.g. Figma, SQL, Stakeholder management">
+        </label>
+        <div class="tag-list" id="skillTags"></div>
+      </section>
+
+      <section class="field-group" data-section="projects">
+        <h2 class="group-title"><span class="idx">06</span> Projects
+          <button class="btn btn-add" data-add="projects">+ Add project</button>
+        </h2>
+        <div class="repeatable-list" id="projectsList"></div>
+      </section>
+
+      <p class="editor-footnote">Everything here is saved to this browser only — nothing is uploaded anywhere.</p>
+    </aside>
+
+    <!-- ===== Right: live paper preview ===== -->
+    <main class="preview-stage">
+      <div class="preview-scroll">
+        <div class="paper template-modern" id="resumePaper" aria-live="polite"></div>
+      </div>
+    </main>
+
+  </div>
+</div>
+
+<!-- Entry templates used by JS to clone repeatable rows -->
+<template id="tpl-experience-row">
+  <div class="entry-card" data-id="">
+    <div class="entry-card-head">
+      <span class="drag-dot">⠿</span>
+      <input type="text" class="entry-title-input" data-field="role" placeholder="Role title">
+      <button class="btn btn-remove" data-remove title="Remove">✕</button>
+    </div>
+    <div class="grid-2">
+      <label class="field"><span>Company</span><input type="text" data-field="company" placeholder="Acme Corp"></label>
+      <label class="field"><span>Location</span><input type="text" data-field="location" placeholder="Remote"></label>
+    </div>
+    <div class="grid-3">
+      <label class="field"><span>Start</span><input type="text" data-field="start" placeholder="Jan 2022"></label>
+      <label class="field"><span>End</span><input type="text" data-field="end" placeholder="Present"></label>
+      <label class="field checkbox-field"><input type="checkbox" data-field="current"><span>I currently work here</span></label>
+    </div>
+    <label class="field">
+      <span>Highlights — one per line</span>
+      <textarea rows="3" data-field="bullets" placeholder="Led redesign of onboarding, lifting activation 18%&#10;Mentored 3 junior designers"></textarea>
+    </label>
+  </div>
+</template>
+
+<template id="tpl-education-row">
+  <div class="entry-card" data-id="">
+    <div class="entry-card-head">
+      <span class="drag-dot">⠿</span>
+      <input type="text" class="entry-title-input" data-field="school" placeholder="University name">
+      <button class="btn btn-remove" data-remove title="Remove">✕</button>
+    </div>
+    <div class="grid-2">
+      <label class="field"><span>Degree</span><input type="text" data-field="degree" placeholder="B.A."></label>
+      <label class="field"><span>Field of study</span><input type="text" data-field="field" placeholder="Graphic Design"></label>
+    </div>
+    <div class="grid-3">
+      <label class="field"><span>Start</span><input type="text" data-field="start" placeholder="2014"></label>
+      <label class="field"><span>End</span><input type="text" data-field="end" placeholder="2018"></label>
+      <label class="field"><span>GPA (optional)</span><input type="text" data-field="gpa" placeholder="3.8"></label>
+    </div>
+  </div>
+</template>
+
+<template id="tpl-projects-row">
+  <div class="entry-card" data-id="">
+    <div class="entry-card-head">
+      <span class="drag-dot">⠿</span>
+      <input type="text" class="entry-title-input" data-field="name" placeholder="Project name">
+      <button class="btn btn-remove" data-remove title="Remove">✕</button>
+    </div>
+    <label class="field"><span>Link (optional)</span><input type="text" data-field="link" placeholder="github.com/you/project"></label>
+    <label class="field"><span>Description</span><textarea rows="2" data-field="description" placeholder="What it does and the impact it had."></textarea></label>
+  </div>
+</template>
+
+<script src="js/storage.js"></script>
+<script src="js/templates.js"></script>
+<script src="js/preview.js"></script>
+<script src="js/formHandler.js"></script>
+<script src="js/pdfExport.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
